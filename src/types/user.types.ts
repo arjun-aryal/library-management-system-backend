@@ -11,15 +11,15 @@ export interface User {
   updated_at: Date;
 }
 
-export interface LoginInput {
-  email: string;
-  password: string;
+export interface GetAllUsersParams {
+  page?: number | string;
+  limit?: number | string;
+  search?: string;
+  role?: string;
+  sortBy?: keyof User;
+  order?: "asc" | "desc";
 }
 
-export interface RegisterInput {
-  name: string;
-  email: string;
-  password: string;
-  role: UserRole;
-  is_active?: boolean;
-}
+export type UpdateUser = Partial<
+  Pick<User, "name" | "email" | "role" | "is_active">
+>;

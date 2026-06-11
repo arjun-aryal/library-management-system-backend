@@ -6,6 +6,21 @@ export interface PaginationQuery {
 export interface PaginationMeta {
   page: number;
   limit: number;
-  total: number;
+  totalRecords: number;
   totalPages?: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginationMeta;
+}
+
+export interface PaginationOptions extends PaginationQuery {
+  startIndex: number;
+  paginate?: boolean;
+}
+
+export interface PaginationResult {
+  clause: string;
+  params: number[];
 }

@@ -4,8 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { env } from "../config/env.js";
 import { JWTPayload, UserInfo } from "../types/auth.types.js";
 import { errorResponse } from "../utils/index.js";
-// import { getUserRole } from "../services/user.service.js"; 
-
+import { getUserRole } from "repository/user.service.js";
 
 const extractToken = (req: Request): string | null => {
   const authHeader = req.headers.authorization;
@@ -40,15 +39,16 @@ const authenticationMiddleware = async (
 
   try {
     const userInfo = decodeToken(token);
-    // const userRole = await getUserRole(userInfo.userId);
+    const userRole = await getUserRole(Number(userInfo.userId));
 
     req.userInfo = {
       ...userInfo,
-      // role: userRole,
+      role: userRole,
     };
 
     next();
   } catch (error) {
+    console.error(error);
     return errorResponse({
       res,
       statusCode: StatusCodes.UNAUTHORIZED,
