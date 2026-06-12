@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 
-export const listAllBook = (req: Request, res: Response) => {};
-export const listBookById = (req: Request, res: Response) => {};
+export const listAllBook = async (req: Request, res: Response) => {};
+export const listBookById = async (req: Request, res: Response) => {};
 
-export const createBook = (req: Request, res: Response) => {};
+export const createBook = async (req: Request, res: Response) => {};
 
-export const updateBook = (req: Request, res: Response) => {};
+export const updateBook = async (req: Request, res: Response) => {};
 
-export const deleteBook = (req: Request, res: Response) => {};
+export const deleteBook = async (req: Request, res: Response) => {};

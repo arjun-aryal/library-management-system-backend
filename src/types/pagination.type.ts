@@ -24,3 +24,9 @@ export interface PaginationResult {
   clause: string;
   params: number[];
 }
+
+export interface ListQuery<T = unknown> extends PaginationQuery {
+  search?: string;
+  sortBy?: keyof T;
+  order?: "asc" | "desc";
+}

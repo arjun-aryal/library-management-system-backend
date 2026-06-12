@@ -4,16 +4,17 @@ import { RegisterInput } from "types/auth.types";
 import { PaginatedResponse } from "types/pagination.type";
 import { GetAllUsersParams, UpdateUser, User } from "types/user.types";
 import { buildPagination } from "utils/paginationHelper";
-export const getUserRole = async (userId: Number, client?: PoolClient) => {
+
+export const getUserRole = async (userId: number, client?: PoolClient) => {
   const result = await query(`SELECT role FROM users WHERE id = $1`, [userId]);
-  return result.rows[0].role;
+  return result.rows[0];
 };
-export const userEmailExist = async (email: string): Promise<User | null> => {
+export const userEmailExist = async (emails: string): Promise<User | null> => {
   const result = await query<User>(
     `select id, name, email, password, role, is_active, created_at, updated_at
      from users
      where email = $1`,
-    [email],
+    [emails],
   );
   return result.rows[0] ?? null;
 };
@@ -100,7 +101,7 @@ export const getAllUsers = async ({
   };
 };
 
-export const getUserById = async (userId: Number) => {
+export const getUserById = async (userId: number) => {
   const baseQuery = `
   select
     id,
@@ -118,7 +119,11 @@ export const getUserById = async (userId: Number) => {
   return result.rows[0];
 };
 
-export const updateUserById = async (payload: UpdateUser, userId: number) => {
+export const updateUserById = async (
+  payload: UpdateUser,
+  userId: number,
+  client?: PoolClient,
+) => {
   const fields = Object.keys(payload);
   if (fields.length === 0) {
     throw new Error("No fields provided for update");
@@ -136,12 +141,66 @@ export const updateUserById = async (payload: UpdateUser, userId: number) => {
     RETURNING id, name, email, role, is_active, created_at, updated_at
   `;
 
-  const result = await query(baseQuery, [...values, userId]);
+  const result = await query(baseQuery, [...values, userId], client);
   return result.rows[0];
 };
 
-export const deleteUserById = async (userId: Number) => {
-  const result = await query(`DELETE FROM users WHERE id = $1 RETURNING id`, [
-    userId,
-  ]);
+export const deleteUserById = async (userId: number, client?: PoolClient) => {
+  const result = await query(
+    `UPDATE users 
+     SET is_active = false, updated_at = NOW()
+     WHERE id = $1`,
+    [userId],
+    client,
+  );
+
+  return;
+};
+
+export const getUsersByEmails = async (
+  emails: string[],
+  client?: PoolClient,
+): Promise<User[]> => {
+  const result = await query<User>(
+    `
+    SELECT id, name, email, password, role, is_active, created_at, updated_at
+    FROM users
+    WHERE email = ANY($1)
+    `,
+    [emails],
+  );
+
+  return result.rows;
+};
+
+export const createBulkUsers = async (
+  users: RegisterInput[],
+  client?: PoolClient,
+) => {
+  if (!users.length) return [];
+
+  const values: unknown[] = [];
+
+  const placeholders = users.map((user, index) => {
+    const offset = index * 4;
+
+    values.push(user.name, user.email, user.password, user.role);
+
+    return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, NOW(), NOW())`;
+  });
+
+  const result = await query(
+    `
+    INSERT INTO users
+      (name, email, password, role, created_at, updated_at)
+    VALUES
+      ${placeholders.join(",")}
+    RETURNING
+      id, name, email, role, created_at, updated_at
+    `,
+    values,
+    client,
+  );
+
+  return result.rows;
 };

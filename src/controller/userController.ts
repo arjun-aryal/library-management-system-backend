@@ -1,40 +1,26 @@
-import { env } from "config/env";
-import { UserRole } from "enums/user-role";
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import {
-  createUser,
-  deleteUserById,
-  getAllUsers,
-  getUserById,
-  updateUserById,
-  userEmailExist,
-} from "repository/user.service";
-import { User } from "types/user.types";
-import { errorResponse, hashPassword, successResponse } from "utils";
+  createUserService,
+  deleteUserService,
+  getUserByIdService,
+  listAllUsersService,
+  updateUserService,
+} from "services/user.service";
+import { errorResponse, successResponse } from "utils";
 
 export const listAllUser = async (req: Request, res: Response) => {
-  console.log("reqw");
   try {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
-    const search = req.query.search as string | undefined;
-    const sortBy = req.query.sortBy as keyof User;
-    const order = req.query.order as string;
+    const query = req.query;
 
-    const dbResponse = await getAllUsers({
-      page,
-      limit,
-      search,
-      sortBy,
-      order,
-    });
+    const result = await listAllUsersService(query);
+
     return successResponse({
       res,
       statusCode: StatusCodes.OK,
-      message: "Data retrived",
-      data: dbResponse.data,
-      pagination: dbResponse.meta,
+      message: "Data retrieved",
+      data: result.data,
+      pagination: result.meta,
     });
   } catch (error) {
     console.error(error);
@@ -42,7 +28,7 @@ export const listAllUser = async (req: Request, res: Response) => {
     return errorResponse({
       res,
       statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
-      message: "Failed to Retrive",
+      message: "Failed to retrieve users",
     });
   }
 };
@@ -50,13 +36,22 @@ export const listAllUser = async (req: Request, res: Response) => {
 export const listUserById = async (req: Request, res: Response) => {
   try {
     const userId = Number(req.params.id);
-    const dbResponse = await getUserById(userId);
+
+    const user = await getUserByIdService(userId);
+
+    if (!user) {
+      return errorResponse({
+        res,
+        statusCode: StatusCodes.NOT_FOUND,
+        message: "User not found",
+      });
+    }
 
     return successResponse({
       res,
       statusCode: StatusCodes.OK,
-      message: "Data retrived",
-      data: dbResponse,
+      message: "Data retrieved",
+      data: user,
     });
   } catch (error) {
     console.error(error);
@@ -64,37 +59,28 @@ export const listUserById = async (req: Request, res: Response) => {
     return errorResponse({
       res,
       statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
-      message: "Failed to Retrive",
+      message: "Failed to retrieve user",
     });
   }
 };
 
 export const createNewUser = async (req: Request, res: Response) => {
   try {
-    const { name, email, role } = req.body;
-    const existingUser = await userEmailExist(email);
+    const result = await createUserService(req.body);
 
-    if (existingUser) {
+    if (!result.success) {
       return errorResponse({
         res,
-        statusCode: StatusCodes.CONFLICT,
-        message: "User Already Exist with this eamil",
+        statusCode: result.statusCode,
+        message: result.message,
       });
     }
 
-    const hashedPassword = await hashPassword(env.DEFAULT_PASSWORD);
-
-    const dbResponse = await createUser({
-      name,
-      email,
-      password: hashedPassword,
-      role: role || UserRole.AUTHOR,
-    });
     return successResponse({
       res,
-      statusCode: StatusCodes.CREATED,
-      message: "Registraion complete, Please Login",
-      data: dbResponse,
+      statusCode: result.statusCode,
+      message: result.message,
+      data: result.data,
     });
   } catch (error) {
     console.error(error);
@@ -102,7 +88,7 @@ export const createNewUser = async (req: Request, res: Response) => {
     return errorResponse({
       res,
       statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
-      message: "Failed to Create User",
+      message: "Failed to create user",
     });
   }
 };
@@ -110,26 +96,22 @@ export const createNewUser = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
   try {
     const userId = Number(req.params.id);
-    const body = req.body;
 
-    const existingUser = await getUserById(userId);
-    if (!existingUser) {
+    const result = await updateUserService(userId, req.body);
+
+    if (result.notFound) {
       return errorResponse({
         res,
         statusCode: StatusCodes.NOT_FOUND,
         message: "User not found",
       });
     }
-    const payload = Object.fromEntries(
-      Object.entries(body).filter(([_, v]) => v !== undefined),
-    );
 
-    const dbResponse = await updateUserById(body, userId);
     return successResponse({
       res,
       statusCode: StatusCodes.OK,
       message: "User Updated",
-      data: dbResponse,
+      data: result.data,
     });
   } catch (error) {
     console.error(error);
@@ -144,9 +126,10 @@ export const updateUser = async (req: Request, res: Response) => {
 export const deleteUser = async (req: Request, res: Response) => {
   try {
     const userId = Number(req.params.id);
-    const user = await getUserById(userId);
 
-    if (!user) {
+    const result = await deleteUserService(userId);
+
+    if (result.notFound) {
       return errorResponse({
         res,
         statusCode: StatusCodes.NOT_FOUND,
@@ -154,13 +137,10 @@ export const deleteUser = async (req: Request, res: Response) => {
       });
     }
 
-    const result = await deleteUserById(userId);
-
     return successResponse({
       res,
       statusCode: StatusCodes.OK,
       message: "User deleted successfully",
-      data: result,
     });
   } catch (error) {
     console.error(error);

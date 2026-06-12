@@ -32,6 +32,7 @@ export const createTables = async () => {
         user_id int unique not null references users(id) on delete cascade,
         bio text,
         nationality varchar(100),
+        is_active boolean default true,
         created_at timestamp default current_timestamp,
         updated_at timestamp default current_timestamp
       );

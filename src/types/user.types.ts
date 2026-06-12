@@ -1,4 +1,5 @@
 import { UserRole } from "../enums/user-role";
+import { ListQuery } from "./pagination.type";
 
 export interface User {
   id: string;
@@ -11,15 +12,12 @@ export interface User {
   updated_at: Date;
 }
 
-export interface GetAllUsersParams {
-  page?: number | string;
-  limit?: number | string;
-  search?: string;
+export interface GetAllUsersParams extends ListQuery<User> {
   role?: string;
-  sortBy?: keyof User;
-  order?: "asc" | "desc";
 }
 
 export type UpdateUser = Partial<
   Pick<User, "name" | "email" | "role" | "is_active">
 >;
+
+

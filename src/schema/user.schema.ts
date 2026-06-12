@@ -1,20 +1,7 @@
-import { UserRole } from "enums/user-role";
 import { z } from "zod";
+import { UserRole } from "enums/user-role";
 
-const IdParamSchema = z.object({
-  id: z.coerce.number().int().positive(),
-});
-
-const PaginationQuerySchema = z.object({
-  page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().positive().max(100).default(10),
-
-  sortBy: z
-    .enum(["id", "name", "email", "role", "created_at", "updated_at"])
-    .default("id"),
-
-  order: z.enum(["asc", "desc"]).default("asc"),
-});
+import { IdParamSchema, createListQuerySchema } from "./common.schema";
 
 const UserBodySchema = z.object({
   name: z
@@ -42,9 +29,14 @@ export const updateUserSchema = z.object({
 });
 
 export const getUsersSchema = z.object({
-  query: PaginationQuerySchema.extend({
-    search: z.string().trim().optional(),
-  }),
+  query: createListQuerySchema([
+    "id",
+    "name",
+    "email",
+    "role",
+    "created_at",
+    "updated_at",
+  ]),
 });
 
 export const getUserByIdSchema = z.object({

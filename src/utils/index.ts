@@ -40,9 +40,7 @@ export const errorResponse = ({
 };
 
 export const hashPassword = async (password: string): Promise<string> => {
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  return hashedPassword;
+  return bcrypt.hash(password, 10);
 };
 export const comparePassword = async (
   enteredPassword: string,
@@ -56,4 +54,8 @@ export const generateToken = (payload: JWTPayload): string => {
   return jwt.sign(payload, env.JWT_SECRET, {
     expiresIn: env.JWT_EXPIRES_IN,
   });
+};
+
+export const defaultPassword = async (): Promise<string> => {
+  return bcrypt.hash(env.DEFAULT_PASSWORD, 10);
 };

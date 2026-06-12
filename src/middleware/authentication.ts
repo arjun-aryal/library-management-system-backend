@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { env } from "../config/env.js";
 import { JWTPayload, UserInfo } from "../types/auth.types.js";
 import { errorResponse } from "../utils/index.js";
-import { getUserRole } from "repository/user.service.js";
+import { getUserRole } from "repository/userRepository.js";
 
 const extractToken = (req: Request): string | null => {
   const authHeader = req.headers.authorization;
