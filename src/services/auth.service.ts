@@ -1,4 +1,5 @@
 import { UserRole } from "enums/user-role";
+import { getAuthorByUserId } from "repository/authorRepository";
 import { createUser, userEmailExist } from "repository/userRepository";
 import { RegisterInput } from "types/auth.types";
 import { comparePassword, generateToken, hashPassword } from "utils";
@@ -48,6 +49,14 @@ export const loginService = async (email: string, password: string) => {
     };
   }
 
+  let authorId: number | null = null;
+
+  if (user.role === "author") {
+    const author = await getAuthorByUserId(Number(user.id));
+
+    authorId = author?.id ?? null;
+  }
+
   const token = generateToken({
     userId: Number(user.id),
     name: user.name,
@@ -58,7 +67,10 @@ export const loginService = async (email: string, password: string) => {
     unauthorized: false,
     data: {
       token,
-      user,
+      user: {
+        ...user,
+        authorId,
+      },
     },
   };
 };
