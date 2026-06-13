@@ -51,8 +51,7 @@ export const getAllUsers = async ({
       )
     `);
   }
-  const where =
-    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = conditions.length > 0 ? `AND ${conditions.join(" AND ")}` : "";
 
   const sortOrder = order?.toUpperCase() === "DESC" ? "DESC" : "ASC";
   const shouldPaginate = page !== undefined && limit !== undefined;
@@ -78,6 +77,7 @@ export const getAllUsers = async ({
       updated_at,
       COUNT(*) OVER() AS total_records
     FROM users
+    WHERE is_active = true
     ${where}
     ORDER BY ${sortBy} ${sortOrder}
     ${clause}
@@ -112,7 +112,7 @@ export const getUserById = async (userId: number) => {
     created_at,
     updated_at
   from users
-  where id = $1
+  where id = $1 AND is_active = true
 `;
 
   const result = await query(baseQuery, [userId]);

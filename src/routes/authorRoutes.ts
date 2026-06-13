@@ -2,6 +2,7 @@ import express from "express";
 
 import validate from "../middleware/validateSchema";
 import authenticationMiddleware from "../middleware/authentication";
+import bookRoutes from "./bookRoutes";
 
 import {
   createAuthorSchema,
@@ -25,6 +26,7 @@ import { uploadCsvFile } from "config/multer";
 const router = express.Router();
 
 // router.use(authenticationMiddleware);
+router.use("/:authorId/books", bookRoutes);
 
 router
   .route("/")
@@ -33,7 +35,6 @@ router
 
 router.route("/import").post(uploadCsvFile.single("file"), importAuthor);
 router.route("/export").get(exportAuthor);
-
 
 router
   .route("/:id")

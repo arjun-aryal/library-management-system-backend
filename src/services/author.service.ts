@@ -157,7 +157,7 @@ export const deleteAuthorService = async (authorId: number) => {
 
     const deletedAuthor = await deleteAuthorById(authorId, client);
 
-    await deleteUserById(existingAuthor.user_id);
+    await deleteUserById(existingAuthor.user_id, client);
 
     return {
       notFound: false,
