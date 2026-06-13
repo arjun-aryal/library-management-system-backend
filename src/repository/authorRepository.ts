@@ -29,8 +29,7 @@ export const getAllAuthor = async ({
         )
     `);
   }
-  const where =
-    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = conditions.length > 0 ? `AND ${conditions.join(" AND ")}` : "";
 
   const sortOrder = order?.toUpperCase() === "DESC" ? "DESC" : "ASC";
   const shouldPaginate = page !== undefined && limit !== undefined;
@@ -57,6 +56,7 @@ export const getAllAuthor = async ({
         COUNT(*) OVER() AS total_records
     FROM authors a
     JOIN users u ON a.user_id = u.id
+    WHERE a.is_active = true
     ${where}
     ORDER BY ${sortBy} ${sortOrder}
     ${clause}
@@ -89,12 +89,13 @@ export const getAuthorById = async (authorId: Number, client?: PoolClient) => {
       u.email,
       a.bio,
       a.nationality,
+      a.is_active,
       a.created_at,
       a.updated_at
     FROM authors a
     JOIN users u
       ON a.user_id = u.id
-    WHERE a.id = $1
+    WHERE a.id = $1  AND a.is_active = true
   `;
 
   const result = await query(baseQuery, [authorId], client);

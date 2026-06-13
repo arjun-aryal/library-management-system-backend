@@ -19,7 +19,7 @@ export const createTables = async () => {
         email varchar(255) unique not null,
         password varchar(500) not null,
         role role_enum not null default 'author',
-        is_active boolean default true,
+        is_active boolean not null default true,
         created_at timestamp default current_timestamp,
         updated_at timestamp default current_timestamp
       );
@@ -32,7 +32,7 @@ export const createTables = async () => {
         user_id int unique not null references users(id) on delete cascade,
         bio text,
         nationality varchar(100),
-        is_active boolean default true,
+        is_active boolean not null default true,
         created_at timestamp default current_timestamp,
         updated_at timestamp default current_timestamp
       );
@@ -46,6 +46,7 @@ export const createTables = async () => {
         title varchar(255) not null,
         isbn varchar(50) unique not null,
         published_year int check (published_year >= 0),
+        is_active boolean not null default true,
         created_at timestamp default current_timestamp,
         updated_at timestamp default current_timestamp
       );
