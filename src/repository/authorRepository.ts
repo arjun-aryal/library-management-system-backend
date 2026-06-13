@@ -194,3 +194,30 @@ export const createBulkAuthors = async (
 
   return result.rows;
 };
+
+export const getAuthorByUserId = async (
+  userId: number,
+  client?: PoolClient,
+) => {
+  const queryText = `
+    SELECT
+      a.id,
+      a.user_id,
+      u.name,
+      u.email,
+      a.bio,
+      a.nationality,
+      a.is_active,
+      a.created_at,
+      a.updated_at
+    FROM authors a
+    JOIN users u
+      ON a.user_id = u.id
+    WHERE a.user_id = $1
+      AND a.is_active = true
+  `;
+
+  const result = await query(queryText, [userId], client);
+
+  return result.rows[0];
+};
