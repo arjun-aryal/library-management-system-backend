@@ -43,7 +43,7 @@ const authenticationMiddleware = async (
 
     req.userInfo = {
       ...userInfo,
-      role: userRole,
+      role: userRole.role,
     };
 
     next();
