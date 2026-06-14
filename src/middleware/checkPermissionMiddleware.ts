@@ -8,7 +8,6 @@ const checkPermissionMiddleware = (
 ) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     const userRole = req.userInfo.role;
-
     const allowed = Array.isArray(requiredPermission)
       ? requiredPermission.includes(userRole)
       : userRole === requiredPermission;

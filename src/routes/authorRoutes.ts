@@ -22,24 +22,54 @@ import {
   importAuthor,
 } from "../controller/authorController";
 import { uploadCsvFile } from "config/multer";
+import checkPermissionMiddleware from "middleware/checkPermissionMiddleware";
+import { UserRole } from "enums/user-role";
 
 const router = express.Router();
 
-// router.use(authenticationMiddleware);
+router.use(authenticationMiddleware);
 router.use("/:authorId/books", bookRoutes);
 
 router
   .route("/")
-  .get(validate(getAuthorsSchema), listAllAuthor)
-  .post(validate(createAuthorSchema), createAuthor);
+  .get(
+    validate(getAuthorsSchema),
+    checkPermissionMiddleware([UserRole.LIBRARIAN, UserRole.SUPER_ADMIN]),
+    listAllAuthor,
+  )
+  .post(
+    validate(createAuthorSchema),
+    checkPermissionMiddleware([UserRole.LIBRARIAN]),
+    createAuthor,
+  );
 
-router.route("/import").post(uploadCsvFile.single("file"), importAuthor);
-router.route("/export").get(exportAuthor);
+router
+  .route("/import")
+  .post(
+    uploadCsvFile.single("file"),
+    checkPermissionMiddleware([UserRole.LIBRARIAN]),
+    importAuthor,
+  );
+router
+  .route("/export")
+  .get(checkPermissionMiddleware([UserRole.LIBRARIAN]), exportAuthor);
 
 router
   .route("/:id")
-  .get(validate(getAuthorByIdSchema), listAuthorById)
-  .patch(validate(updateAuthorSchema), updateAuthor)
-  .delete(validate(deleteAuthorSchema), deleteAuthor);
+  .get(
+    validate(getAuthorByIdSchema),
+    checkPermissionMiddleware([UserRole.LIBRARIAN, UserRole.SUPER_ADMIN]),
+    listAuthorById,
+  )
+  .patch(
+    validate(updateAuthorSchema),
+    checkPermissionMiddleware([UserRole.LIBRARIAN]),
+    updateAuthor,
+  )
+  .delete(
+    validate(deleteAuthorSchema),
+    checkPermissionMiddleware([UserRole.LIBRARIAN]),
+    deleteAuthor,
+  );
 
 export default router;
