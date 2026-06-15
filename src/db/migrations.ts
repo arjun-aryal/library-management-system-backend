@@ -56,5 +56,9 @@ export const createTables = async () => {
   } catch (err) {
     console.error("error creating tables:", err);
     throw err;
+  } finally {
+    pool.end();
   }
 };
+
+createTables();

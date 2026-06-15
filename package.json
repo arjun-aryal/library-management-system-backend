@@ -5,7 +5,9 @@
 	"main": "index.ts",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"dev": "nodemon --exec tsx index.ts"
+		"dev": "nodemon --exec tsx index.ts",
+		"migrate": "tsx src/db/migrations.ts",
+		"seed": "tsx src/db/seed.ts"
 	},
 	"keywords": [],
 	"author": "",

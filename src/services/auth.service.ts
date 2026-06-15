@@ -1,33 +1,52 @@
+import { withTransaction } from "config/db";
 import { UserRole } from "enums/user-role";
-import { getAuthorByUserId } from "repository/authorRepository";
+import { createAuthor, getAuthorByUserId } from "repository/authorRepository";
 import { createUser, userEmailExist } from "repository/userRepository";
 import { RegisterInput } from "types/auth.types";
+import { CreateAuthorInput } from "types/author.types";
 import { comparePassword, generateToken, hashPassword } from "utils";
 
-export const registerService = async (input: RegisterInput) => {
-  const { name, email, password, role } = input;
+export const registerService = async (
+  input: RegisterInput & Partial<CreateAuthorInput>,
+) => {
+  return withTransaction(async (client) => {
+    const existingUser = await userEmailExist(input.email, client);
 
-  const existingUser = await userEmailExist(email);
+    if (existingUser) {
+      return {
+        conflict: true,
+        data: null,
+      };
+    }
 
-  if (existingUser) {
+    const hashedPassword = await hashPassword(input.password);
+
+    const user = await createUser(
+      {
+        name: input.name,
+        email: input.email,
+        password: hashedPassword,
+        role: input.role || UserRole.LIBRARIAN,
+      },
+      client,
+    );
+
+    if (user.role === UserRole.AUTHOR) {
+      await createAuthor(
+        {
+          user_id: user.id,
+          bio: input.bio ?? "",
+          nationality: input.nationality ?? "",
+        },
+        client,
+      );
+    }
+
     return {
-      conflict: true,
+      conflict: false,
+      data: user,
     };
-  }
-
-  const hashedPassword = await hashPassword(password);
-
-  const dbResponse = await createUser({
-    name,
-    email,
-    password: hashedPassword,
-    role: role || UserRole.LIBRARIAN,
   });
-
-  return {
-    conflict: false,
-    data: dbResponse,
-  };
 };
 
 export const loginService = async (email: string, password: string) => {
