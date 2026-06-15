@@ -58,7 +58,11 @@ router
   .route("/:id")
   .get(
     validate(getAuthorByIdSchema),
-    checkPermissionMiddleware([UserRole.LIBRARIAN, UserRole.SUPER_ADMIN]),
+    checkPermissionMiddleware([
+      UserRole.SUPER_ADMIN,
+      UserRole.LIBRARIAN,
+      UserRole.AUTHOR,
+    ]),
     listAuthorById,
   )
   .patch(
